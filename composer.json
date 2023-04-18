@@ -1,0 +1,23 @@
+{
+    "name": "hankchen/likeps",
+    "description": "this is a library for draw image like ps which use layer compose",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "LikePS\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "HankChen"
+        }
+    ],
+    "require": {
+        "php": "^7.1||^8.0",
+        "endroid/qr-code": "^4.6",
+        "intervention/image": "^2.7"
+    },
+    "suggest": {
+        
+    }
+}
