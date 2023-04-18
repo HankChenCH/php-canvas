@@ -1,10 +1,10 @@
 {
-    "name": "hankchen/likeps",
+    "name": "hankchen/php-canvas",
     "description": "this is a library for draw image like ps which use layer compose",
     "type": "library",
     "autoload": {
         "psr-4": {
-            "LikePS\\": "src/"
+            "hankchen\\Canvas\\": "src/"
         }
     },
     "authors": [
