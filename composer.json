@@ -4,7 +4,7 @@
     "type": "library",
     "autoload": {
         "psr-4": {
-            "hankchen\\Canvas\\": "src/"
+            "HankChen\\Canvas\\": "src/"
         }
     },
     "authors": [

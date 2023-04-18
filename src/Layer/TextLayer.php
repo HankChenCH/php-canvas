@@ -1,6 +1,6 @@
 <?php
 
-namespace LikePS\Layer;
+namespace HankChen\Canvas\Layer;
 
 use Exception;
 use Intervention\Image\AbstractFont;

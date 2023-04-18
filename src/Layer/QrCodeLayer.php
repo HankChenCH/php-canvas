@@ -1,6 +1,6 @@
 <?php
 
-namespace LikePS\Layer;
+namespace HankChen\Canvas\Layer;
 
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Color\Color;

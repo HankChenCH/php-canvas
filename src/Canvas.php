@@ -1,13 +1,13 @@
 <?php
 
-namespace LikePS;
+namespace HankChen\Canvas;
 
 use SplPriorityQueue;
 
 use Intervention\Image\ImageManagerStatic as ImageManager;
 use Intervention\Image\Image;
 
-use LikePS\Layer\AbstractLayer;
+use HankChen\Canvas\Layer\AbstractLayer;
 
 
 class Canvas

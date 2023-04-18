@@ -1,6 +1,6 @@
 <?php
 
-namespace LikePS\Layer;
+namespace HankChen\Canvas\Layer;
 
 use Intervention\Image\Image;
 use Intervention\Image\ImageManagerStatic as ImageManager;
