@@ -13,7 +13,7 @@
         }
     ],
     "require": {
-        "php": "^7.1||^8.0",
+        "php": "^8.0",
         "endroid/qr-code": "^4.6",
         "intervention/image": "^2.7"
     },
