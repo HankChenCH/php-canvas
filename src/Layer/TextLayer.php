@@ -177,34 +177,36 @@ class TextLayer extends AbstractLayer
 
     private function autowrap()
     {
-        $text = $this->text;
-
-        $lineWordCount = intval(floor($this->getContentWidth() / $this->fontSize));
-        $strLength = mb_strlen($text);
-
+        $texts = explode("\n", $this->text);
+        
         $lineWords = [];
-        $currentCount = 0;
-        $currentTxt = "";
-        for ($i = 0; $i < $strLength; $i++) {
-            $txt = mb_substr($text, $i, 1);
-            $currentTxt .= $txt;
-
-            // 半角字符当半个字长度
-            if (preg_match('/[\x{0020}\x{0020}-\x{7e}]/u', $txt) > 0) {
-                $currentCount += 0.55;
-            } else {
-                $currentCount += 1;
+        $lineWordCount = intval(floor($this->getContentWidth() / $this->fontSize));
+        foreach ($texts as $text) {
+            $strLength = mb_strlen($text);
+    
+            $currentCount = 0;
+            $currentTxt = "";
+            for ($i = 0; $i < $strLength; $i++) {
+                $txt = mb_substr($text, $i, 1);
+                $currentTxt .= $txt;
+    
+                // 半角字符当半个字长度
+                if (preg_match('/[\x{0020}\x{0020}-\x{7e}]/u', $txt) > 0) {
+                    $currentCount += 0.55;
+                } else {
+                    $currentCount += 1;
+                }
+    
+                if ($currentCount + 1 > $lineWordCount) {
+                    $lineWords[] = $currentTxt;
+                    $currentTxt = "";
+                    $currentCount = 0;
+                }
             }
-
-            if ($currentCount + 1 > $lineWordCount) {
+    
+            if (mb_strlen($currentTxt) > 0) {
                 $lineWords[] = $currentTxt;
-                $currentTxt = "";
-                $currentCount = 0;
             }
-        }
-
-        if (mb_strlen($currentTxt) > 0) {
-            $lineWords[] = $currentTxt;
         }
 
         $this->lines = count($lineWords);
