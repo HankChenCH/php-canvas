@@ -24,6 +24,8 @@ class TextLayer extends AbstractLayer
     protected $textAngle = 0;
 
     protected $autowrap = false;
+    protected $wraped = false;
+    protected $lineWords = [];
     protected $lines = 1;
 
     public function getHeight()
@@ -48,6 +50,12 @@ class TextLayer extends AbstractLayer
     public function setText($text)
     {
         $this->text = $text;
+        
+        if ($this->autowrap) {
+            $this->wraped = false;
+            $this->autowrap();
+        }
+        
         return $this;
     }
 
@@ -85,6 +93,10 @@ class TextLayer extends AbstractLayer
     public function setAutowrap(bool $autowrap)
     {
         $this->autowrap = $autowrap;
+        if (!$this->wraped) {
+            $this->autowrap();
+        }
+
         return $this;
     }
 
@@ -100,10 +112,8 @@ class TextLayer extends AbstractLayer
         $innerBox = $this->renderInnerBox();
 
         if ($this->autowrap) {
-            $lines = $this->autowrap();
-            
             list($posx, $posy) = $this->getInitXY();
-            foreach ($lines as $line) {
+            foreach ($this->lineWords as $line) {
                 $innerBox->text($line, $posx, $posy, function (AbstractFont $font) {
                     $font->file($this->font);
                     $font->size($this->fontSize);
@@ -177,6 +187,10 @@ class TextLayer extends AbstractLayer
 
     private function autowrap()
     {
+        if ($this->wraped) {
+            return;
+        }
+
         $texts = explode("\n", $this->text);
         
         $lineWords = [];
@@ -209,7 +223,9 @@ class TextLayer extends AbstractLayer
             }
         }
 
+        $this->lineWords = $lineWords;
         $this->lines = count($lineWords);
+        $this->wraped = true;
         return $lineWords;
     }
 
