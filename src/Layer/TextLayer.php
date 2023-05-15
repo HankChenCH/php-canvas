@@ -37,6 +37,7 @@ class TextLayer extends AbstractLayer
         $padding = $this->getPadding();
         $paddingHeight = $padding['top'] + $padding['bottom'];
         if ($this->autowrap) {
+            $this->autowrap();
             return $this->lineHeight() * $this->lines + $paddingHeight;
         }
 
@@ -50,12 +51,8 @@ class TextLayer extends AbstractLayer
     public function setText($text)
     {
         $this->text = $text;
-        
-        if ($this->autowrap) {
-            $this->wraped = false;
-            $this->autowrap();
-        }
-        
+        $this->wraped = false;
+
         return $this;
     }
 
@@ -93,10 +90,6 @@ class TextLayer extends AbstractLayer
     public function setAutowrap(bool $autowrap)
     {
         $this->autowrap = $autowrap;
-        if (!$this->wraped) {
-            $this->autowrap();
-        }
-
         return $this;
     }
 
@@ -112,6 +105,8 @@ class TextLayer extends AbstractLayer
         $innerBox = $this->renderInnerBox();
 
         if ($this->autowrap) {
+            $this->autowrap();
+            
             list($posx, $posy) = $this->getInitXY();
             foreach ($this->lineWords as $line) {
                 $innerBox->text($line, $posx, $posy, function (AbstractFont $font) {
@@ -187,6 +182,10 @@ class TextLayer extends AbstractLayer
 
     private function autowrap()
     {
+        if (!$this->autowrap) {
+            return;
+        }
+
         if ($this->wraped) {
             return;
         }
@@ -226,7 +225,6 @@ class TextLayer extends AbstractLayer
         $this->lineWords = $lineWords;
         $this->lines = count($lineWords);
         $this->wraped = true;
-        return $lineWords;
     }
 
     public function graph()
