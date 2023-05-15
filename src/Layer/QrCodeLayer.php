@@ -25,13 +25,6 @@ class QrCodeLayer extends AbstractLayer
      */
     private $qrCodeLayer;
 
-    /**
-     * qrcode文本提示图层
-     *
-     * @var TextLayer|null
-     */
-    private $qrCodeTipsLayer;
-
     public function generateQrCodeLayerFromContent($content)
     {
         $this->qrCodeLayer = ImageLayer::make($this->width, $this->width)
@@ -59,28 +52,11 @@ class QrCodeLayer extends AbstractLayer
             ->getDataUri();
     }
 
-    public function setQrCodeLayer(ImageLayer $qrCodeLayer)
-    {
-        $this->qrCodeLayer = $qrCodeLayer;
-        return $this;
-    }
-
-    public function setQrCodeTipsLayer(TextLayer $qrCodeTipsLayer)
-    {
-        $qrCodeTipsLayer->setWidth($this->getWidth());
-        $this->qrCodeTipsLayer = $qrCodeTipsLayer;
-        return $this;
-    }
-
     public function getHeight()
     {
         $imageHeight = 0;
         if ($this->qrCodeLayer) {
             $imageHeight += $this->qrCodeLayer->getHeight();
-        }
-
-        if ($this->qrCodeTipsLayer) {
-            $imageHeight += $this->qrCodeTipsLayer->getHeight();
         }
 
         return $imageHeight;
@@ -94,11 +70,6 @@ class QrCodeLayer extends AbstractLayer
             $image->insert($this->qrCodeLayer->render());
         }
 
-        if ($this->qrCodeTipsLayer) {
-            $offsetY = $this->qrCodeLayer ? $this->qrCodeLayer->getHeight() : 0;
-            $image->insert($this->qrCodeTipsLayer->render(), 'top-left', 0, $offsetY);
-        }
-
         return $image;
     }
 
@@ -106,12 +77,9 @@ class QrCodeLayer extends AbstractLayer
     {
         $graph = parent::graph();
         $graph['data'] = [
-            'qrCodeText' => $this->qrCodeText
+            'valueType' => 'StaticValue',
+            'value' => $this->qrCodeText
         ];
-
-        if ($this->qrCodeTipsLayer) {
-            $graph['tips'] = $this->qrCodeTipsLayer->graph();
-        }
 
         return $graph;
     }

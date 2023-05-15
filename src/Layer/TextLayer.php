@@ -231,7 +231,7 @@ class TextLayer extends AbstractLayer
     {
         $graph = parent::graph();
 
-        $graph['fontFamily'] = [
+        $graph['spec']['fontFamily'] = [
             'font' => pathinfo($this->font, PATHINFO_BASENAME),
             'fontSize' => $this->fontSize,
             'fontColor' => $this->fontColor,

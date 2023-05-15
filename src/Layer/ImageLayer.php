@@ -106,7 +106,8 @@ class ImageLayer extends AbstractLayer
         $graph = parent::graph();
 
         $graph['data'] = [
-            'image' => $this->rawImg
+            'valueType' => 'StaticValue',
+            'value' => $this->rawImg
         ];
 
         return $graph;

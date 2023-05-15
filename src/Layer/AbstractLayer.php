@@ -320,27 +320,29 @@ abstract class AbstractLayer
     public function graph()
     {
         return [
-            'name' => $this->name,
+            'type' => $this->name,
             'priority' => $this->priority,
-            'shape' => [
-                'width' => $this->width,
-                'height' => $this->height,
-                'autoWidth' => $this->autoWidth,
-                'autoHeight' => $this->autoHeight,
-                'lineHeight' => $this->lineHeight,
-                'padding' => $this->padding,
-                'border' => $this->border,
-                'backgroundColor' => $this->bgColor,
-            ],
-            'align' => [
-                'horizontal' => $this->horizontalAlign,
-                'vertical' => $this->verticalAlign,
-            ],
-            'position' => [
-                'x' => $this->x,
-                'y' => $this->y,
-                'position' => $this->position,
-            ],
+            'spec' => [
+                'shape' => [
+                    'width' => $this->width,
+                    'height' => $this->height,
+                    'autoWidth' => $this->autoWidth,
+                    'autoHeight' => $this->autoHeight,
+                    'lineHeight' => $this->lineHeight,
+                    'padding' => $this->padding,
+                    'border' => $this->border,
+                    'backgroundColor' => $this->bgColor,
+                ],
+                'align' => [
+                    'horizontal' => $this->horizontalAlign,
+                    'vertical' => $this->verticalAlign,
+                ],
+                'position' => [
+                    'x' => $this->x,
+                    'y' => $this->y,
+                    'position' => $this->position,
+                ],
+            ]
         ];
     }
 }
