@@ -68,8 +68,8 @@ class TextLayer extends AbstractLayer
                 throw new Exception("tmp path can not writable:" . $tmpPath);
             }
 
-
-            $pathinfo = pathinfo($font);
+            $urlParseResult = parse_url($font);
+            $pathinfo = pathinfo($urlParseResult['path']);
             $fontPath = $tmpPath . DIRECTORY_SEPARATOR . $pathinfo['basename'];
             if (!is_file($fontPath)) {
                 if (!file_put_contents($tmpPath . DIRECTORY_SEPARATOR . $pathinfo['basename'], file_get_contents($font))) {
