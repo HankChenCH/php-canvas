@@ -36,7 +36,8 @@ class ImageLayer extends AbstractLayer
                 throw new Exception("tmp path can not writable:" . $tmpPath);
             }
 
-            $pathinfo = pathinfo($img);
+            $urlParseResult = parse_url($img);
+            $pathinfo = pathinfo($urlParseResult['path']);
             $imagePath = $tmpPath . DIRECTORY_SEPARATOR . $pathinfo['basename'];
             if (!is_file($imagePath)) {
                 if (!file_put_contents($tmpPath . DIRECTORY_SEPARATOR . $pathinfo['basename'], file_get_contents($img))) {
