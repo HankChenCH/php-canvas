@@ -158,7 +158,7 @@ class TextLayer extends AbstractLayer
                 break;
             case 'center':
                 if (!$this->autoHeight) {
-                    $posy = (int) $this->getContentHeight() / 2;
+                    $posy = intval(($this->getContentHeight() - $this->lineHeight() * ($this->lines - 1)) / 2);
                 } else {
                     $posy = (int) $this->lineHeight() / 2;
                 }
