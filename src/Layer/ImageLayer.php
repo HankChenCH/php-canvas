@@ -40,7 +40,12 @@ class ImageLayer extends AbstractLayer
             $pathinfo = pathinfo($urlParseResult['path']);
             $imagePath = $tmpPath . DIRECTORY_SEPARATOR . $pathinfo['basename'];
             if (!is_file($imagePath)) {
-                if (!file_put_contents($tmpPath . DIRECTORY_SEPARATOR . $pathinfo['basename'], file_get_contents($img))) {
+                $content = file_get_contents($img);
+                if (!$content) {
+                    throw new Exception("could not get remote file({$img})");
+                }
+                
+                if (!file_put_contents($tmpPath . DIRECTORY_SEPARATOR . $pathinfo['basename'], $content)) {
                     throw new Exception("remote file({$img}) save to tmp path failed");
                 }
             }
