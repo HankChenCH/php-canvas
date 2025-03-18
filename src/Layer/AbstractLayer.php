@@ -167,8 +167,8 @@ abstract class AbstractLayer
 
     public function setPosition($x = 0, $y = 0, $position = 'top-left')
     {
-        $this->x = $x;
-        $this->y = $y;
+        $this->x = intval($x);
+        $this->y = intval($y);
         $this->position = $position;
         return $this;
     }
