@@ -37,6 +37,10 @@ class ImageLayer extends AbstractLayer
             }
 
             $urlParseResult = parse_url($img);
+            if (!$urlParseResult || !isset($urlParseResult['path'])) {
+                throw new Exception("image url parse failed:{$img}");
+            }
+
             $pathinfo = pathinfo($urlParseResult['path']);
             $imagePath = $tmpPath . DIRECTORY_SEPARATOR . $pathinfo['basename'];
             if (!is_file($imagePath)) {
