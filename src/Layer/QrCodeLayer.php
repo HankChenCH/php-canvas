@@ -67,7 +67,8 @@ class QrCodeLayer extends AbstractLayer
         $image = $this->renderOutterBox();
 
         if ($this->qrCodeLayer) {
-            $image->insert($this->qrCodeLayer->render());
+            $position = $this->qrCodeLayer->getPosition();
+            $image->insert($this->qrCodeLayer->render(), ...$position);
         }
 
         return $image;
