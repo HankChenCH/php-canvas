@@ -35,7 +35,8 @@ class TableCellLayer extends AbstractLayer
         $image = $this->renderOutterBox();
 
         if ($this->contentLayer) {
-            $image->insert($this->contentLayer->render());
+            $position = $this->contentLayer->getPosition();
+            $image->insert($this->contentLayer->render(), ...$position);
         }
 
         return $image;
