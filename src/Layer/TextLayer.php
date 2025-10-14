@@ -72,7 +72,8 @@ class TextLayer extends AbstractLayer
             $pathinfo = pathinfo($urlParseResult['path']);
             $fontPath = $tmpPath . DIRECTORY_SEPARATOR . $pathinfo['basename'];
             if (!is_file($fontPath)) {
-                if (!file_put_contents($tmpPath . DIRECTORY_SEPARATOR . $pathinfo['basename'], file_get_contents($font))) {
+                $fontContent = $this->resourceDownloader->download($font);
+                if (!file_put_contents($tmpPath . DIRECTORY_SEPARATOR . $pathinfo['basename'], $fontContent)) {
                     throw new Exception("remote file({$font}) save to tmp path failed");
                 }
             }
@@ -106,7 +107,7 @@ class TextLayer extends AbstractLayer
 
         if ($this->autowrap) {
             $this->autowrap();
-            
+
             list($posx, $posy) = $this->getInitXY();
             foreach ($this->lineWords as $line) {
                 $innerBox->text($line, $posx, $posy, function (AbstractFont $font) {
@@ -191,32 +192,32 @@ class TextLayer extends AbstractLayer
         }
 
         $texts = explode("\n", $this->text);
-        
+
         $lineWords = [];
         $lineWordCount = intval(floor($this->getContentWidth() / $this->fontSize));
         foreach ($texts as $text) {
             $strLength = mb_strlen($text);
-    
+
             $currentCount = 0;
             $currentTxt = "";
             for ($i = 0; $i < $strLength; $i++) {
                 $txt = mb_substr($text, $i, 1);
                 $currentTxt .= $txt;
-    
+
                 // 半角字符当半个字长度
                 if (preg_match('/[\x{0020}\x{0020}-\x{7e}]/u', $txt) > 0) {
                     $currentCount += 0.55;
                 } else {
                     $currentCount += 1;
                 }
-    
+
                 if ($currentCount + 1 > $lineWordCount) {
                     $lineWords[] = $currentTxt;
                     $currentTxt = "";
                     $currentCount = 0;
                 }
             }
-    
+
             if (mb_strlen($currentTxt) > 0) {
                 $lineWords[] = $currentTxt;
             }

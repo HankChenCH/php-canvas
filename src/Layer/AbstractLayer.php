@@ -5,8 +5,18 @@ namespace HankChen\Canvas\Layer;
 use Intervention\Image\Image;
 use Intervention\Image\ImageManagerStatic as ImageManager;
 
+use HankChen\Canvas\Contracts\DownloaderInterface;
+use HankChen\Canvas\ResourceManagers\DefaultDownloader;
+
 abstract class AbstractLayer
 {
+    /**
+     * 资源下载器
+     *
+     * @var DownloaderInterface
+     */
+    protected $resourceDownloader;
+
     protected $name;
 
     protected $width;
@@ -49,10 +59,17 @@ abstract class AbstractLayer
             ->setHeight($height)
             ->setBackground($background);
 
+        $self->setDownloader(new DefaultDownloader());
+
         return $self;
     }
 
     abstract public function render(): Image;
+
+    public function setDownloader(DownloaderInterface $downloader)
+    {
+        $this->resourceDownloader = $downloader;
+    }
 
     protected function renderOutterBox()
     {
@@ -152,7 +169,7 @@ abstract class AbstractLayer
     {
         return $this->getHeight() - $this->padding['top'] - $this->padding['bottom'];
     }
-    
+
     public function setLineHeight(float $lineHeight)
     {
         $this->lineHeight = $lineHeight;
