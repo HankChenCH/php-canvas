@@ -3,12 +3,14 @@
 namespace HankChen\Canvas\Layer;
 
 use Exception;
+use HankChen\Canvas\Contracts\DownloaderInterface;
 use Intervention\Image\ImageManagerStatic as ImageManager;
 use Intervention\Image\Image;
 
 class ImageLayer extends AbstractLayer
 {
     protected $name = 'ImageLayer';
+
 
     private $rawImg;
     private $img;
@@ -44,7 +46,7 @@ class ImageLayer extends AbstractLayer
             $pathinfo = pathinfo($urlParseResult['path']);
             $imagePath = $tmpPath . DIRECTORY_SEPARATOR . $pathinfo['basename'];
             if (!is_file($imagePath)) {
-                $content = file_get_contents($img);
+                $content = $this->resourceDownloader->download($img);
                 if (!$content) {
                     throw new Exception("could not get remote file({$img})");
                 }
