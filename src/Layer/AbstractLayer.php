@@ -2,6 +2,8 @@
 
 namespace HankChen\Canvas\Layer;
 
+use Exception;
+
 use Intervention\Image\Image;
 use Intervention\Image\ImageManagerStatic as ImageManager;
 
@@ -69,6 +71,37 @@ abstract class AbstractLayer
     public function setDownloader(DownloaderInterface $downloader)
     {
         $this->resourceDownloader = $downloader;
+
+        return $this;
+    }
+
+    /**
+     * 确保远程资源缓存子目录存在且可写，返回目录路径
+     */
+    protected function ensureCacheDir(string $sub): string
+    {
+        $basePath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'canvas';
+        $tmpPath = $basePath . DIRECTORY_SEPARATOR . $sub;
+
+        // 历史版本以 0644 建出 canvas 目录（缺少执行位，无法在其中创建子目录），先尝试修复
+        if (is_dir($basePath) && (!is_writable($basePath) || !is_executable($basePath))) {
+            @chmod($basePath, 0755);
+        }
+
+        if (!is_dir($tmpPath) && !@mkdir($tmpPath, 0755, true) && !is_dir($tmpPath)) {
+            throw new Exception("tmp path can not writable:" . $tmpPath);
+        }
+
+        // 兼容同样以 0644 建出的子目录
+        if (!is_writable($tmpPath) || !is_executable($tmpPath)) {
+            @chmod($tmpPath, 0755);
+        }
+
+        if (!is_writable($tmpPath) || !is_executable($tmpPath)) {
+            throw new Exception("tmp path can not writable:" . $tmpPath);
+        }
+
+        return $tmpPath;
     }
 
     protected function renderOutterBox()
@@ -162,12 +195,12 @@ abstract class AbstractLayer
 
     public function getContentWidth()
     {
-        return $this->getWidth() - $this->padding['left'] - $this->padding['right'];
+        return intval($this->getWidth() - $this->padding['left'] - $this->padding['right']);
     }
 
     public function getContentHeight()
     {
-        return $this->getHeight() - $this->padding['top'] - $this->padding['bottom'];
+        return intval($this->getHeight() - $this->padding['top'] - $this->padding['bottom']);
     }
 
     public function setLineHeight(float $lineHeight)

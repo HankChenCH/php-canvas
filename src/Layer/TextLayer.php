@@ -35,14 +35,14 @@ class TextLayer extends AbstractLayer
         }
 
         $padding = $this->getPadding();
-        $paddingHeight = $padding['top'] + $padding['bottom'];
+        $paddingHeight = intval($padding['top'] + $padding['bottom']);
         if ($this->autowrap) {
             $this->autowrap();
             return $this->lineHeight() * $this->lines + $paddingHeight;
         }
 
         if (!empty($this->text)) {
-            return $this->lineHeight() * 1 + $paddingHeight;
+            return $this->lineHeight() + $paddingHeight;
         }
 
         return $paddingHeight;
@@ -59,14 +59,7 @@ class TextLayer extends AbstractLayer
     public function setFont($font, $size, $color)
     {
         if (filter_var($font, FILTER_VALIDATE_URL) !== false) {
-            $tmpPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'canvas' . DIRECTORY_SEPARATOR . 'text_layers';
-            if (!is_dir($tmpPath)) {
-                mkdir($tmpPath, 0644, true);
-            }
-
-            if (!is_writable($tmpPath)) {
-                throw new Exception("tmp path can not writable:" . $tmpPath);
-            }
+            $tmpPath = $this->ensureCacheDir('text_layers');
 
             $urlParseResult = parse_url($font);
             $pathinfo = pathinfo($urlParseResult['path']);
@@ -178,7 +171,7 @@ class TextLayer extends AbstractLayer
 
     private function lineHeight()
     {
-        return ceil($this->fontSize * $this->lineHeight);
+        return intval(ceil($this->fontSize * $this->lineHeight));
     }
 
     private function autowrap()

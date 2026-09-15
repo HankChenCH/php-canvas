@@ -54,12 +54,16 @@ class QrCodeLayer extends AbstractLayer
 
     public function getHeight()
     {
-        $imageHeight = 0;
         if ($this->qrCodeLayer) {
-            $imageHeight += $this->qrCodeLayer->getHeight();
+            return $this->qrCodeLayer->getHeight();
         }
 
-        return $imageHeight;
+        // 二维码图层未生成时按宽高声明兜底，避免 0 高度画布导致渲染报错
+        if (!$this->autoHeight && $this->height > 0) {
+            return $this->height;
+        }
+
+        return $this->getWidth();
     }
 
     public function render(): Image
