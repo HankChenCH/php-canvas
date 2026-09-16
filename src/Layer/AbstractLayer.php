@@ -4,10 +4,11 @@ namespace HankChen\Canvas\Layer;
 
 use Exception;
 
-use Intervention\Image\Image;
-use Intervention\Image\ImageManagerStatic as ImageManager;
+use Intervention\Image\Geometry\Factories\LineFactory;
+use Intervention\Image\Interfaces\ImageInterface;
 
 use HankChen\Canvas\Contracts\DownloaderInterface;
+use HankChen\Canvas\ImageManagerFactory;
 use HankChen\Canvas\ResourceManagers\DefaultDownloader;
 
 abstract class AbstractLayer
@@ -66,7 +67,7 @@ abstract class AbstractLayer
         return $self;
     }
 
-    abstract public function render(): Image;
+    abstract public function render(): ImageInterface;
 
     public function setDownloader(DownloaderInterface $downloader)
     {
@@ -109,32 +110,38 @@ abstract class AbstractLayer
         $width = $this->getWidth();
         $height = $this->getHeight();
 
-        $image = ImageManager::canvas($width, $height, $this->bgColor);
+        $image = ImageManagerFactory::make()->createImage($width, $height);
+        if (!empty($this->bgColor)) {
+            $image->fill($this->bgColor);
+        }
 
         $border = $this->getBorder();
         if (!empty($border['top'])) {
-            $image->line(0, 0, $width, 0, function ($draw) use ($border) {
-                $draw->width($border['top']['width']);
-                $draw->color($border['top']['color']);
+            $image->drawLine(function (LineFactory $draw) use ($width, $border) {
+                $draw->from(0, 0)->to($width, 0)
+                    ->width($border['top']['width'])
+                    ->color($border['top']['color']);
             });
         }
         if (!empty($border['bottom'])) {
-            $image->line(0, $height, $width, $height, function ($draw) use ($border) {
-                $draw->width($border['bottom']['width']);
-                $draw->color($border['bottom']['color']);
-                $draw->border($border['bottom']['width'], $border['bottom']['color']);
+            $image->drawLine(function (LineFactory $draw) use ($width, $height, $border) {
+                $draw->from(0, $height)->to($width, $height)
+                    ->width($border['bottom']['width'])
+                    ->color($border['bottom']['color']);
             });
         }
         if (!empty($border['left'])) {
-            $image->line(0, 0, 0, $height, function ($draw) use ($border) {
-                $draw->width($border['left']['width']);
-                $draw->color($border['left']['color']);
+            $image->drawLine(function (LineFactory $draw) use ($height, $border) {
+                $draw->from(0, 0)->to(0, $height)
+                    ->width($border['left']['width'])
+                    ->color($border['left']['color']);
             });
         }
         if (!empty($border['right'])) {
-            $image->line($width, 0, $width, $height, function ($draw) use ($border) {
-                $draw->width($border['right']['width']);
-                $draw->color($border['right']['color']);
+            $image->drawLine(function (LineFactory $draw) use ($width, $height, $border) {
+                $draw->from($width, 0)->to($width, $height)
+                    ->width($border['right']['width'])
+                    ->color($border['right']['color']);
             });
         }
 
@@ -143,7 +150,11 @@ abstract class AbstractLayer
 
     protected function renderInnerBox()
     {
-        $image = ImageManager::canvas($this->getContentWidth(), $this->getContentHeight(), $this->bgColor);
+        $image = ImageManagerFactory::make()->createImage($this->getContentWidth(), $this->getContentHeight());
+        if (!empty($this->bgColor)) {
+            $image->fill($this->bgColor);
+        }
+
         return $image;
     }
 

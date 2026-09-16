@@ -4,8 +4,8 @@ namespace HankChen\Canvas\Layer;
 
 use Exception;
 use HankChen\Canvas\Contracts\DownloaderInterface;
-use Intervention\Image\ImageManagerStatic as ImageManager;
-use Intervention\Image\Image;
+use HankChen\Canvas\ImageManagerFactory;
+use Intervention\Image\Interfaces\ImageInterface;
 
 class ImageLayer extends AbstractLayer
 {
@@ -57,19 +57,20 @@ class ImageLayer extends AbstractLayer
         return $this;
     }
 
-    public function render(): Image
+    public function render(): ImageInterface
     {
         $image = $this->renderOutterBox();
 
         if ($this->img) {
             list($posx, $posy) = $this->getInitXY();
             $image->insert(
-                ImageManager::make($this->img)
-                    ->orientate()
-                    ->fit($this->getContentWidth(), $this->getContentHeight()),
-                'top-left',
+                ImageManagerFactory::make()
+                    ->decode($this->img)
+                    ->orient()
+                    ->cover($this->getContentWidth(), $this->getContentHeight()),
                 $posx,
                 $posy,
+                'top-left',
             );
         }
 

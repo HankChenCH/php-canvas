@@ -50,8 +50,8 @@ class TableCellLayerTest extends CanvasTestCase
 
         $image = $cell->render();
 
-        $this->assertSame(40, $image->getWidth());
-        $this->assertSame(20, $image->getHeight());
+        $this->assertSame(40, $image->width());
+        $this->assertSame(20, $image->height());
         $this->assertPixelSame([255, 0, 0], $image, 20, 10);
     }
 

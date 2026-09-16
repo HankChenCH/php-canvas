@@ -39,10 +39,30 @@ class ImageLayerTest extends CanvasTestCase
         $layer = ImageLayer::make(20, 20, '#0000ff')->setImage($path);
         $image = $layer->render();
 
-        $this->assertSame(20, $image->getWidth());
-        $this->assertSame(20, $image->getHeight());
-        // 源图被 fit 进内容盒后铺满整层
+        $this->assertSame(20, $image->width());
+        $this->assertSame(20, $image->height());
+        // 源图被 cover 进内容盒后铺满整层
         $this->assertPixelSame([255, 0, 0], $image, 10, 10);
+    }
+
+    public function testWideImageIsCroppedToCoverSquareContentBox()
+    {
+        // v2 的 fit() 迁移为 v4 的 cover()：横向源图被中心裁切放大后
+        // 铺满正方形内容盒，四角不允许露出层背景
+        $path = sys_get_temp_dir() . '/php-canvas-test-img-' . uniqid() . '.png';
+        file_put_contents($path, $this->pngBytes(40, 10, '#ff0000'));
+
+        $layer = ImageLayer::make(20, 20, '#0000ff')->setImage($path);
+        $image = $layer->render();
+
+        $this->assertSame(20, $image->width());
+        $this->assertSame(20, $image->height());
+        $this->assertPixelSame([255, 0, 0], $image, 0, 0);
+        $this->assertPixelSame([255, 0, 0], $image, 19, 0);
+        $this->assertPixelSame([255, 0, 0], $image, 0, 19);
+        $this->assertPixelSame([255, 0, 0], $image, 19, 19);
+
+        @unlink($path);
     }
 
     public function testEmptyImageValueIsIgnored()

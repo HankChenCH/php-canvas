@@ -2,8 +2,8 @@
 
 namespace HankChen\Canvas\Tests\Support;
 
-use Intervention\Image\Image;
-use Intervention\Image\ImageManagerStatic;
+use HankChen\Canvas\ImageManagerFactory;
+use Intervention\Image\Interfaces\ImageInterface;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -12,16 +12,20 @@ use PHPUnit\Framework\TestCase;
 abstract class CanvasTestCase extends TestCase
 {
     /**
-     * 取某像素的 RGB 值（GD 驱动 pickColor 返回 [r,g,b,a]，alpha 因驱动而异，不参与比较）
+     * 取某像素的 RGB 值（colorAt 返回 ColorInterface，channels() 为 [r,g,b,a] 通道对象）
      */
-    protected function pixel(Image $image, int $x, int $y): array
+    protected function pixel(ImageInterface $image, int $x, int $y): array
     {
-        $rgba = $image->pickColor($x, $y);
+        $channels = $image->colorAt($x, $y)->channels();
 
-        return [(int) $rgba[0], (int) $rgba[1], (int) $rgba[2]];
+        return [
+            (int) $channels[0]->value(),
+            (int) $channels[1]->value(),
+            (int) $channels[2]->value(),
+        ];
     }
 
-    protected function assertPixelSame(array $expected, Image $image, int $x, int $y): void
+    protected function assertPixelSame(array $expected, ImageInterface $image, int $x, int $y): void
     {
         $this->assertSame(
             $expected,
@@ -35,9 +39,10 @@ abstract class CanvasTestCase extends TestCase
      */
     protected function pngBytes(int $width, int $height, string $color): string
     {
-        return ImageManagerStatic::canvas($width, $height, $color)
-            ->encode('png')
-            ->getEncoded();
+        $image = ImageManagerFactory::make()->createImage($width, $height);
+        $image->fill($color);
+
+        return $image->encodeUsingFileExtension('png')->toString();
     }
 
     /**

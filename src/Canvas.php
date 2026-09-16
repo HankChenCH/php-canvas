@@ -4,8 +4,7 @@ namespace HankChen\Canvas;
 
 use SplPriorityQueue;
 
-use Intervention\Image\ImageManagerStatic as ImageManager;
-use Intervention\Image\Image;
+use Intervention\Image\Interfaces\ImageInterface;
 
 use HankChen\Canvas\Layer\AbstractLayer;
 
@@ -22,7 +21,7 @@ class Canvas
     /**
      * 图像实例
      *
-     * @var Image
+     * @var ImageInterface
      */
     private $core;
 
@@ -30,13 +29,7 @@ class Canvas
     {
         $canvas = new self();
 
-        if (class_exists("\Imagick")) {
-            $imageManager = ImageManager::configure(['driver' => 'imagick']);
-        } else {
-            $imageManager = ImageManager::configure();
-        }
-
-        $canvas->setCore($imageManager->canvas($width, $height));
+        $canvas->setCore(ImageManagerFactory::make()->createImage($width, $height));
         $canvas->initLayers($layers);
 
         return $canvas;
@@ -47,7 +40,7 @@ class Canvas
         $this->layers = new SplPriorityQueue();
     }
 
-    private function setCore(Image $image)
+    private function setCore(ImageInterface $image)
     {
         $this->core = $image;
         return $this;
@@ -93,8 +86,8 @@ class Canvas
 
         return [
             'canvas' => [
-                'width' => $this->core->getWidth(),
-                'height' => $this->core->getHeight(),
+                'width' => $this->core->width(),
+                'height' => $this->core->height(),
             ],
             'layers' => $layerGraphs,
         ];
@@ -109,8 +102,8 @@ class Canvas
             $layer = $this->layers->current();
 
             $image = $layer->render();
-            $position = $layer->getPosition();
-            $this->core->insert($image, ...$position);
+            list($position, $posx, $posy) = $layer->getPosition();
+            $this->core->insert($image, $posx, $posy, $position);
 
             $this->layers->next();
         }

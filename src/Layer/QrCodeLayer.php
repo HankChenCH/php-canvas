@@ -5,11 +5,11 @@ namespace HankChen\Canvas\Layer;
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Color\Color;
 use Endroid\QrCode\Encoding\Encoding;
-use Endroid\QrCode\ErrorCorrectionLevel\ErrorCorrectionLevelHigh;
-use Endroid\QrCode\RoundBlockSizeMode\RoundBlockSizeModeNone;
+use Endroid\QrCode\ErrorCorrectionLevel;
+use Endroid\QrCode\RoundBlockSizeMode;
 use Endroid\QrCode\Writer\PngWriter;
 
-use Intervention\Image\Image;
+use Intervention\Image\Interfaces\ImageInterface;
 
 
 class QrCodeLayer extends AbstractLayer
@@ -37,18 +37,19 @@ class QrCodeLayer extends AbstractLayer
     {
         $this->qrCodeText = $text;
 
-        // Create a basic QR code
-        $qrCode = QrCode::create($text)
-            ->setSize($this->getWidth())
-            ->setMargin(0)  // Set advanced options
-            ->setRoundBlockSizeMode(new RoundBlockSizeModeNone())
-            ->setEncoding(new Encoding('UTF-8'))
-            ->setErrorCorrectionLevel(new ErrorCorrectionLevelHigh())
-            ->setForegroundColor(new Color(0, 0, 0)) // ['r' => 0, 'g' => 0, 'b' => 0]
-            ->setBackgroundColor(new Color(255, 255, 255));
+        // v6 起 QrCode 为只读值对象，通过命名参数构造；纠错级别与圆角模式由类枚举给出
+        $qrCode = new QrCode(
+            data: $text,
+            encoding: new Encoding('UTF-8'),
+            errorCorrectionLevel: ErrorCorrectionLevel::High,
+            size: $this->getWidth(),
+            margin: 0,
+            roundBlockSizeMode: RoundBlockSizeMode::None,
+            foregroundColor: new Color(0, 0, 0),
+            backgroundColor: new Color(255, 255, 255),
+        );
 
-        $writer = new PngWriter();
-        return $writer->write($qrCode)
+        return (new PngWriter())->write($qrCode)
             ->getDataUri();
     }
 
@@ -66,13 +67,13 @@ class QrCodeLayer extends AbstractLayer
         return $this->getWidth();
     }
 
-    public function render(): Image
+    public function render(): ImageInterface
     {
         $image = $this->renderOutterBox();
 
         if ($this->qrCodeLayer) {
-            $position = $this->qrCodeLayer->getPosition();
-            $image->insert($this->qrCodeLayer->render(), ...$position);
+            list($position, $posx, $posy) = $this->qrCodeLayer->getPosition();
+            $image->insert($this->qrCodeLayer->render(), $posx, $posy, $position);
         }
 
         return $image;

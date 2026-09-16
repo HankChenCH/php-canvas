@@ -16,8 +16,8 @@ class QrCodeLayerTest extends CanvasTestCase
         $this->assertSame(60, $layer->getHeight());
 
         $image = $layer->render();
-        $this->assertSame(60, $image->getWidth());
-        $this->assertSame(60, $image->getHeight());
+        $this->assertSame(60, $image->width());
+        $this->assertSame(60, $image->height());
     }
 
     public function testRenderWithoutGeneratedQrFallsBackToDeclaredSize()
@@ -27,16 +27,16 @@ class QrCodeLayerTest extends CanvasTestCase
         $this->assertSame(60, $layer->getHeight());
 
         $image = $layer->render();
-        $this->assertSame(60, $image->getWidth());
-        $this->assertSame(60, $image->getHeight());
+        $this->assertSame(60, $image->width());
+        $this->assertSame(60, $image->height());
 
         // 显式声明高度时以声明为准
         $fixed = QrCodeLayer::make(80, 40);
         $this->assertSame(40, $fixed->getHeight());
 
         $fixedImage = $fixed->render();
-        $this->assertSame(80, $fixedImage->getWidth());
-        $this->assertSame(40, $fixedImage->getHeight());
+        $this->assertSame(80, $fixedImage->width());
+        $this->assertSame(40, $fixedImage->height());
     }
 
     public function testGraphValueFollowsGeneration()
@@ -62,5 +62,25 @@ class QrCodeLayerTest extends CanvasTestCase
         $this->assertLessThan(60, $pixel[0]);
         $this->assertLessThan(60, $pixel[1]);
         $this->assertLessThan(60, $pixel[2]);
+    }
+
+    public function testCjkContentRendersWithUtf8Encoding()
+    {
+        // v6 通过命名参数显式指定 UTF-8 编码，中文内容应能正常生成并渲染
+        $layer = QrCodeLayer::make(60);
+        $layer->generateQrCodeLayerFromContent('画布文字');
+
+        $image = $layer->render();
+
+        $this->assertSame(60, $image->width());
+        $this->assertSame(60, $image->height());
+
+        $pixel = $this->pixel($image, 0, 0);
+        $this->assertLessThan(60, $pixel[0]);
+        $this->assertLessThan(60, $pixel[1]);
+        $this->assertLessThan(60, $pixel[2]);
+
+        // graph 数据保留原始中文内容
+        $this->assertSame('画布文字', $layer->graph()['data']['value']);
     }
 }

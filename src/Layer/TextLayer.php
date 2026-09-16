@@ -3,8 +3,8 @@
 namespace HankChen\Canvas\Layer;
 
 use Exception;
-use Intervention\Image\AbstractFont;
-use Intervention\Image\Image;
+use Intervention\Image\Interfaces\ImageInterface;
+use Intervention\Image\Typography\FontFactory;
 
 
 class TextLayer extends AbstractLayer
@@ -93,7 +93,7 @@ class TextLayer extends AbstractLayer
         return $this;
     }
 
-    public function render(): Image
+    public function render(): ImageInterface
     {
         $outterBox = $this->renderOutterBox();
         $innerBox = $this->renderInnerBox();
@@ -103,32 +103,38 @@ class TextLayer extends AbstractLayer
 
             list($posx, $posy) = $this->getInitXY();
             foreach ($this->lineWords as $line) {
-                $innerBox->text($line, $posx, $posy, function (AbstractFont $font) {
-                    $font->file($this->font);
-                    $font->size($this->fontSize);
-                    $font->color($this->fontColor);
-                    $font->align($this->horizontalAlign);
-                    $font->valign($this->verticalAlign);
-                    $font->angle($this->textAngle);
+                $innerBox->text($line, $posx, $posy, function (FontFactory $font) {
+                    $this->applyFont($font);
                 });
 
                 $posy += $this->lineHeight();
             }
         } else {
             list($posx, $posy) = $this->getInitXY();
-            $innerBox->text($this->text, $posx, $posy, function (AbstractFont $font) {
-                $font->file($this->font);
-                $font->size($this->fontSize);
-                $font->color($this->fontColor);
-                $font->align($this->horizontalAlign);
-                $font->valign($this->verticalAlign);
-                $font->angle($this->textAngle);
+            $innerBox->text($this->text, $posx, $posy, function (FontFactory $font) {
+                $this->applyFont($font);
             });
         }
 
         $padding = $this->getPadding();
-        $outterBox->insert($innerBox, 'top-left', $padding['left'], $padding['top']);
+        $outterBox->insert($innerBox, $padding['left'], $padding['top'], 'top-left');
         return $outterBox;
+    }
+
+    /**
+     * 应用字体配置到 v4 的 FontFactory；
+     * 纯数字编号是 v2 的 GD 内置字体 id，v4 已移除该支持，跳过后走 v4 内置默认字体
+     */
+    private function applyFont(FontFactory $font)
+    {
+        if (!is_numeric($this->font)) {
+            $font->file($this->font);
+        }
+
+        $font->size($this->fontSize);
+        $font->color($this->fontColor);
+        $font->align($this->horizontalAlign, $this->verticalAlign);
+        $font->angle($this->textAngle);
     }
 
     private function getInitXY()

@@ -122,9 +122,28 @@ class TextLayerTest extends CanvasTestCase
 
         $image = $layer->render();
 
-        $this->assertSame(96, $image->getWidth());
-        $this->assertSame(40, $image->getHeight());
+        $this->assertSame(96, $image->width());
+        $this->assertSame(40, $image->height());
         $this->assertPixelSame([255, 255, 255], $image, 1, 1);
+    }
+
+    public function testNumericBuiltinFontIdFallsBackToDefaultFont()
+    {
+        // v2 默认字体是 GD 内置字体编号 '1'，v4 已移除内置字体支持；
+        // 数字编号按无字体文件处理走 v4 默认字体，文字仍应实际画出
+        $layer = TextLayer::make(96, 40, '#ffffff')->setText('hello world');
+        $image = $layer->render();
+
+        $darkPixels = 0;
+        for ($x = 0; $x < 96; $x++) {
+            for ($y = 0; $y < 40; $y++) {
+                if ($this->pixel($image, $x, $y)[0] < 128) {
+                    $darkPixels++;
+                }
+            }
+        }
+
+        $this->assertGreaterThan(0, $darkPixels, '数字字体编号应回退为默认字体并画出文字像素');
     }
 
     public function testLocalFontRecordedAsBasenameInGraph()

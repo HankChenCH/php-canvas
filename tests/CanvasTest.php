@@ -2,9 +2,13 @@
 
 namespace HankChen\Canvas\Tests;
 
-use Intervention\Image\Image;
+use Intervention\Image\Interfaces\ImageInterface;
 use HankChen\Canvas\Canvas;
 use HankChen\Canvas\Layer\ImageLayer;
+use HankChen\Canvas\Layer\TableCellLayer;
+use HankChen\Canvas\Layer\TableLayer;
+use HankChen\Canvas\Layer\TableRowLayer;
+use HankChen\Canvas\Layer\TextLayer;
 use HankChen\Canvas\Tests\Support\CanvasTestCase;
 
 class CanvasTest extends CanvasTestCase
@@ -14,9 +18,9 @@ class CanvasTest extends CanvasTestCase
         $canvas = Canvas::make(100, 80);
 
         $this->assertInstanceOf(Canvas::class, $canvas);
-        $this->assertInstanceOf(Image::class, $canvas->getCore());
-        $this->assertSame(100, $canvas->getCore()->getWidth());
-        $this->assertSame(80, $canvas->getCore()->getHeight());
+        $this->assertInstanceOf(ImageInterface::class, $canvas->getCore());
+        $this->assertSame(100, $canvas->getCore()->width());
+        $this->assertSame(80, $canvas->getCore()->height());
     }
 
     public function testGraphContainsCanvasSizeAndLayerSpecs()
@@ -111,5 +115,37 @@ class CanvasTest extends CanvasTestCase
         $this->assertSame('image/png', $size['mime']);
 
         @unlink($path);
+    }
+
+    public function testComposeImageTextAndTableLayersEndToEnd()
+    {
+        // v4/v6 升级后的全链路：盒模型渲染、cover 缩放、文字绘制、表格嵌套插入
+        $imgPath = sys_get_temp_dir() . '/php-canvas-test-img-' . uniqid() . '.png';
+        file_put_contents($imgPath, $this->pngBytes(10, 10, '#ff0000'));
+
+        $table = TableLayer::make(40, 20, '#ffffff')->setPosition(60, 0)->setPriority(1);
+        $table->addRow(
+            TableRowLayer::make('auto', 20)
+                ->addCell(TableCellLayer::make(40, 20, '#0000ff'))
+        );
+
+        $text = TextLayer::make(40, 20, '#ffffff')
+            ->setPosition(30, 0)
+            ->setPriority(2)
+            ->setText('hi');
+
+        $image = ImageLayer::make(20, 20)
+            ->setPosition(0, 0)
+            ->setPriority(3)
+            ->setImage($imgPath);
+
+        $canvas = Canvas::make(100, 100, $image, $text, $table)->render();
+
+        $core = $canvas->getCore();
+        $this->assertPixelSame([255, 0, 0], $core, 10, 10);
+        $this->assertPixelSame([255, 255, 255], $core, 50, 2);
+        $this->assertPixelSame([0, 0, 255], $core, 80, 10);
+
+        @unlink($imgPath);
     }
 }

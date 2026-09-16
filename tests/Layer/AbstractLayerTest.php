@@ -2,8 +2,8 @@
 
 namespace HankChen\Canvas\Tests\Layer;
 
-use Intervention\Image\Image;
-use Intervention\Image\ImageManagerStatic;
+use HankChen\Canvas\ImageManagerFactory;
+use Intervention\Image\Interfaces\ImageInterface;
 use HankChen\Canvas\Layer\AbstractLayer;
 use HankChen\Canvas\Tests\Support\CanvasTestCase;
 
@@ -15,9 +15,9 @@ class AbstractLayerTest extends CanvasTestCase
     private function layer(): AbstractLayer
     {
         return new class extends AbstractLayer {
-            public function render(): Image
+            public function render(): ImageInterface
             {
-                return ImageManagerStatic::canvas(1, 1);
+                return ImageManagerFactory::make()->createImage(1, 1);
             }
         };
     }
