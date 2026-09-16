@@ -13,7 +13,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # 多 PHP 版本跑单元测试（CI 无 Imagick 扩展，走 GD 驱动，与本地行为一致）
+  # 多 PHP 版本跑单元测试。
+  # 注意：setup-php 在 ubuntu 上会预装 Imagick，工厂按“Imagick 优先”选驱动，
+  # 因此 CI 主要验证 Imagick 驱动路径（GD 路径由本地开发环境覆盖）；
+  # 文本渲染相关用例已对两种驱动做了兼容（见 CanvasTestCase）
   test:
     name: PHPUnit (PHP ${{ matrix.php }})
     runs-on: ubuntu-latest

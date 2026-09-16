@@ -134,6 +134,14 @@ class CanvasTest extends CanvasTestCase
             ->setPriority(2)
             ->setText('hi');
 
+        // Imagick 驱动没有内置字体：有系统 TTF 用真实字体，否则跳过
+        $ttf = $this->systemTtf();
+        if ($ttf !== null) {
+            $text->setFont($ttf, 12, '#000000');
+        } elseif ($this->usesImagickDriver()) {
+            $this->markTestSkipped('Imagick 驱动渲染文字必须有字体文件，且环境中没有可用 TTF');
+        }
+
         $image = ImageLayer::make(20, 20)
             ->setPosition(0, 0)
             ->setPriority(3)

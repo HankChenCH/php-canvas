@@ -3,6 +3,7 @@
 namespace HankChen\Canvas\Tests\Support;
 
 use HankChen\Canvas\ImageManagerFactory;
+use Intervention\Image\Drivers\Imagick\Driver as ImagickDriver;
 use Intervention\Image\Interfaces\ImageInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -11,6 +12,38 @@ use PHPUnit\Framework\TestCase;
  */
 abstract class CanvasTestCase extends TestCase
 {
+    /**
+     * 当前是否使用 Imagick 驱动（CI 上 setup-php 预装 Imagick，本地多为 GD）
+     */
+    protected function usesImagickDriver(): bool
+    {
+        return ImageManagerFactory::make()->driver instanceof ImagickDriver;
+    }
+
+    /**
+     * 找一个可用的系统 TTF 字体（跨平台测试用），找不到返回 null。
+     * v4 的 Imagick 驱动没有内置字体机制，渲染文字必须给真实字体文件
+     */
+    protected function systemTtf(): ?string
+    {
+        $candidates = [
+            // Linux
+            '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
+            '/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf',
+            // macOS
+            '/System/Library/Fonts/Supplemental/Arial.ttf',
+            '/System/Library/Fonts/Supplemental/Times New Roman.ttf',
+        ];
+
+        foreach ($candidates as $path) {
+            if (is_file($path)) {
+                return $path;
+            }
+        }
+
+        return null;
+    }
+
     /**
      * 取某像素的 RGB 值（colorAt 返回 ColorInterface，channels() 为 [r,g,b,a] 通道对象）
      */

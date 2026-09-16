@@ -120,6 +120,14 @@ class TextLayerTest extends CanvasTestCase
     {
         $layer = TextLayer::make(96, 40, '#ffffff')->setText('hi');
 
+        // Imagick 驱动没有内置字体，有系统 TTF 时用真实字体，否则只能跳过
+        $ttf = $this->systemTtf();
+        if ($ttf !== null) {
+            $layer->setFont($ttf, 12, '#000000');
+        } elseif ($this->usesImagickDriver()) {
+            $this->markTestSkipped('Imagick 驱动渲染文字必须有字体文件，且环境中没有可用 TTF');
+        }
+
         $image = $layer->render();
 
         $this->assertSame(96, $image->width());
@@ -130,7 +138,12 @@ class TextLayerTest extends CanvasTestCase
     public function testNumericBuiltinFontIdFallsBackToDefaultFont()
     {
         // v2 默认字体是 GD 内置字体编号 '1'，v4 已移除内置字体支持；
-        // 数字编号按无字体文件处理走 v4 默认字体，文字仍应实际画出
+        // GD 驱动下数字编号按无字体文件处理走 v4 内置默认字体；
+        // Imagick 驱动无内置字体机制，不设字体文件会直接抛异常（v4 真实限制）
+        if ($this->usesImagickDriver()) {
+            $this->markTestSkipped('v4 的 Imagick 驱动不支持无字体文件/数字字体编号渲染');
+        }
+
         $layer = TextLayer::make(96, 40, '#ffffff')->setText('hello world');
         $image = $layer->render();
 
