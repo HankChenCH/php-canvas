@@ -2,10 +2,13 @@
 
 namespace HankChen\Canvas\Layer;
 
-use Intervention\Image\Image;
-use Intervention\Image\ImageManagerStatic as ImageManager;
+use Exception;
+
+use Intervention\Image\Geometry\Factories\LineFactory;
+use Intervention\Image\Interfaces\ImageInterface;
 
 use HankChen\Canvas\Contracts\DownloaderInterface;
+use HankChen\Canvas\ImageManagerFactory;
 use HankChen\Canvas\ResourceManagers\DefaultDownloader;
 
 abstract class AbstractLayer
@@ -64,11 +67,42 @@ abstract class AbstractLayer
         return $self;
     }
 
-    abstract public function render(): Image;
+    abstract public function render(): ImageInterface;
 
     public function setDownloader(DownloaderInterface $downloader)
     {
         $this->resourceDownloader = $downloader;
+
+        return $this;
+    }
+
+    /**
+     * 确保远程资源缓存子目录存在且可写，返回目录路径
+     */
+    protected function ensureCacheDir(string $sub): string
+    {
+        $basePath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'canvas';
+        $tmpPath = $basePath . DIRECTORY_SEPARATOR . $sub;
+
+        // 历史版本以 0644 建出 canvas 目录（缺少执行位，无法在其中创建子目录），先尝试修复
+        if (is_dir($basePath) && (!is_writable($basePath) || !is_executable($basePath))) {
+            @chmod($basePath, 0755);
+        }
+
+        if (!is_dir($tmpPath) && !@mkdir($tmpPath, 0755, true) && !is_dir($tmpPath)) {
+            throw new Exception("tmp path can not writable:" . $tmpPath);
+        }
+
+        // 兼容同样以 0644 建出的子目录
+        if (!is_writable($tmpPath) || !is_executable($tmpPath)) {
+            @chmod($tmpPath, 0755);
+        }
+
+        if (!is_writable($tmpPath) || !is_executable($tmpPath)) {
+            throw new Exception("tmp path can not writable:" . $tmpPath);
+        }
+
+        return $tmpPath;
     }
 
     protected function renderOutterBox()
@@ -76,32 +110,38 @@ abstract class AbstractLayer
         $width = $this->getWidth();
         $height = $this->getHeight();
 
-        $image = ImageManager::canvas($width, $height, $this->bgColor);
+        $image = ImageManagerFactory::make()->createImage($width, $height);
+        if (!empty($this->bgColor)) {
+            $image->fill($this->bgColor);
+        }
 
         $border = $this->getBorder();
         if (!empty($border['top'])) {
-            $image->line(0, 0, $width, 0, function ($draw) use ($border) {
-                $draw->width($border['top']['width']);
-                $draw->color($border['top']['color']);
+            $image->drawLine(function (LineFactory $draw) use ($width, $border) {
+                $draw->from(0, 0)->to($width, 0)
+                    ->width($border['top']['width'])
+                    ->color($border['top']['color']);
             });
         }
         if (!empty($border['bottom'])) {
-            $image->line(0, $height, $width, $height, function ($draw) use ($border) {
-                $draw->width($border['bottom']['width']);
-                $draw->color($border['bottom']['color']);
-                $draw->border($border['bottom']['width'], $border['bottom']['color']);
+            $image->drawLine(function (LineFactory $draw) use ($width, $height, $border) {
+                $draw->from(0, $height)->to($width, $height)
+                    ->width($border['bottom']['width'])
+                    ->color($border['bottom']['color']);
             });
         }
         if (!empty($border['left'])) {
-            $image->line(0, 0, 0, $height, function ($draw) use ($border) {
-                $draw->width($border['left']['width']);
-                $draw->color($border['left']['color']);
+            $image->drawLine(function (LineFactory $draw) use ($height, $border) {
+                $draw->from(0, 0)->to(0, $height)
+                    ->width($border['left']['width'])
+                    ->color($border['left']['color']);
             });
         }
         if (!empty($border['right'])) {
-            $image->line($width, 0, $width, $height, function ($draw) use ($border) {
-                $draw->width($border['right']['width']);
-                $draw->color($border['right']['color']);
+            $image->drawLine(function (LineFactory $draw) use ($width, $height, $border) {
+                $draw->from($width, 0)->to($width, $height)
+                    ->width($border['right']['width'])
+                    ->color($border['right']['color']);
             });
         }
 
@@ -110,7 +150,11 @@ abstract class AbstractLayer
 
     protected function renderInnerBox()
     {
-        $image = ImageManager::canvas($this->getContentWidth(), $this->getContentHeight(), $this->bgColor);
+        $image = ImageManagerFactory::make()->createImage($this->getContentWidth(), $this->getContentHeight());
+        if (!empty($this->bgColor)) {
+            $image->fill($this->bgColor);
+        }
+
         return $image;
     }
 
@@ -162,12 +206,12 @@ abstract class AbstractLayer
 
     public function getContentWidth()
     {
-        return $this->getWidth() - $this->padding['left'] - $this->padding['right'];
+        return intval($this->getWidth() - $this->padding['left'] - $this->padding['right']);
     }
 
     public function getContentHeight()
     {
-        return $this->getHeight() - $this->padding['top'] - $this->padding['bottom'];
+        return intval($this->getHeight() - $this->padding['top'] - $this->padding['bottom']);
     }
 
     public function setLineHeight(float $lineHeight)
