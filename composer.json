@@ -13,7 +13,9 @@
         }
     },
     "scripts": {
-        "test": "phpunit"
+        "test": "phpunit",
+        "test:coverage": "phpunit --coverage-clover=coverage.xml --coverage-text",
+        "check-coverage": "@php scripts/check-coverage.php"
     },
     "authors": [
         {

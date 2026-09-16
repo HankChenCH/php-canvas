@@ -1,0 +1,69 @@
+name: Tests
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # 多 PHP 版本跑单元测试（CI 无 Imagick 扩展，走 GD 驱动，与本地行为一致）
+  test:
+    name: PHPUnit (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php: '8.3'
+            experimental: false
+          # 8.4 为前瞻性验证：依赖按 lock 安装可行，但未在本地实测过，失败不阻塞
+          - php: '8.4'
+            experimental: true
+    continue-on-error: ${{ matrix.experimental }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: gd, mbstring, exif
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Run tests
+        run: composer test
+
+  # 覆盖率门禁：pcov 收集 src/ 语句覆盖率，低于阈值则任务失败
+  coverage:
+    name: Coverage gate (>= 80%)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: gd, mbstring, exif
+          coverage: pcov
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Run tests with coverage
+        run: composer test:coverage
+
+      - name: Enforce coverage threshold
+        run: php scripts/check-coverage.php 80 coverage.xml
