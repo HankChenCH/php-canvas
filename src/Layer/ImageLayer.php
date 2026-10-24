@@ -4,8 +4,8 @@ namespace HankChen\Canvas\Layer;
 
 use Exception;
 use HankChen\Canvas\Contracts\DownloaderInterface;
-use Intervention\Image\ImageManagerStatic as ImageManager;
-use Intervention\Image\Image;
+use HankChen\Canvas\ImageManagerFactory;
+use Intervention\Image\Interfaces\ImageInterface;
 
 class ImageLayer extends AbstractLayer
 {
@@ -29,14 +29,7 @@ class ImageLayer extends AbstractLayer
         $this->rawImg = $img;
 
         if (filter_var($img, FILTER_VALIDATE_URL) !== false) {
-            $tmpPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'canvas' . DIRECTORY_SEPARATOR . 'img_layers';
-            if (!is_dir($tmpPath)) {
-                mkdir($tmpPath, 0644, true);
-            }
-
-            if (!is_writable($tmpPath)) {
-                throw new Exception("tmp path can not writable:" . $tmpPath);
-            }
+            $tmpPath = $this->ensureCacheDir('img_layers');
 
             $urlParseResult = parse_url($img);
             if (!$urlParseResult || !isset($urlParseResult['path'])) {
@@ -50,7 +43,7 @@ class ImageLayer extends AbstractLayer
                 if (!$content) {
                     throw new Exception("could not get remote file({$img})");
                 }
-                
+
                 if (!file_put_contents($tmpPath . DIRECTORY_SEPARATOR . $pathinfo['basename'], $content)) {
                     throw new Exception("remote file({$img}) save to tmp path failed");
                 }
@@ -64,19 +57,20 @@ class ImageLayer extends AbstractLayer
         return $this;
     }
 
-    public function render(): Image
+    public function render(): ImageInterface
     {
         $image = $this->renderOutterBox();
 
         if ($this->img) {
             list($posx, $posy) = $this->getInitXY();
             $image->insert(
-                ImageManager::make($this->img)
-                    ->orientate()
-                    ->fit($this->getContentWidth(), $this->getContentHeight()),
-                'top-left',
+                ImageManagerFactory::make()
+                    ->decode($this->img)
+                    ->orient()
+                    ->cover($this->getContentWidth(), $this->getContentHeight()),
                 $posx,
                 $posy,
+                'top-left',
             );
         }
 

@@ -2,7 +2,7 @@
 
 namespace HankChen\Canvas\Layer;
 
-use Intervention\Image\Image;
+use Intervention\Image\Interfaces\ImageInterface;
 
 
 class TableLayer extends AbstractLayer
@@ -32,13 +32,13 @@ class TableLayer extends AbstractLayer
         return $this;
     }
 
-    public function render(): Image
+    public function render(): ImageInterface
     {
         $image = $this->renderOutterBox();
 
         $posy = 0;
         foreach ($this->rows as $row) {
-            $image->insert($row->render(), 'top-left', 0, $posy);
+            $image->insert($row->render(), 0, $posy, 'top-left');
             $posy += $row->getHeight();
         }
 
