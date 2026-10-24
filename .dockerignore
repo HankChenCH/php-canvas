@@ -1,0 +1,6 @@
+# 宿主机 vendor 是本地 PHP 8.3 安装的，容器内需重新 composer install
+vendor/
+.git/
+.phpunit.result.cache
+coverage.xml
+.phpunit.cache/
