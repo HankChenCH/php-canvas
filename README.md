@@ -25,6 +25,20 @@ A PHP library for drawing images, similar to using layers.
 - `ext-exif`（可选）：带 EXIF 方向信息的 JPEG 自动转正
 - 默认远程下载使用 `file_get_contents`，需要 `allow_url_fopen`（可通过注入下载器绕开）
 
+## 版本线与 PHP 兼容性
+
+本库以**多条版本线**服务不同 PHP 版本（策略详见 [docs/adr/0001-多版本线支持策略.md](docs/adr/0001-多版本线支持策略.md)）：
+
+| php-canvas 版本线 | PHP | intervention/image | endroid/qr-code | 状态 |
+| --- | --- | --- | --- | --- |
+| `0.3.x` | `^8.3` | `^4.0` | `^6.0` | 活跃开发，接收全部新特性 |
+| `0.2.x` | `^8.0` | `^2.7` | `^4.6` | 维护模式：仅修复安全/严重缺陷 |
+
+- PHP `>= 8.3`：直接 `composer require hankchen/php-canvas`（默认解析到 `0.3.x`）
+- PHP `8.0 – 8.2`：`composer require hankchen/php-canvas:^0.2`
+- composer 对 0.x 的约束语义（`^0.2` 与 `^0.3` 互不兼容）天然隔离两条线，升级新线请参考 [AGENTS.md](AGENTS.md) 中记录的 v2 → v4 API 差异
+- 8.1/8.2 用户如需新特性，欢迎提 issue 说明场景；出现真实需求时会评估增设中间版本线
+
 ## 安装
 
 ```sh

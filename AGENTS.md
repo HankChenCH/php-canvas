@@ -32,6 +32,7 @@ Follow TDD for behavior changes: write/extend a failing test first (red), fix `s
 
 ## Rules and gotchas
 
+- **多版本线策略**：`main` 跟随活跃线（当前 `0.3.x`，php `^8.3` + intervention v4 + endroid v6）；旧线活在 `0.2.x` 维护分支（php `^8.0` + intervention v2.7 + endroid v4.6），**仅接受安全/严重缺陷修复**、无 CI、修复后在 PHP 8.0 环境手动冒烟。决策与背景见 `docs/adr/0001-多版本线支持策略.md`；版本线术语见根目录 `CONTEXT.md`。
 - **intervention/image v4 API only.** v4 removed `ImageManagerStatic`; create/decode images via `ImageManagerFactory::make()` (`createImage()` / `decode()`). Key renames/moves to keep in mind when editing: `Image` type → `Intervention\Image\Interfaces\ImageInterface`; `canvas(w,h,bg)` → `createImage(w,h)` + `fill(bg)`; `make()` → `decode()`; `orientate()` → `orient()`; `fit()` → `cover()`; `getWidth()/getHeight()/pickColor()` on images → `width()/height()/colorAt()`; line drawing → `drawLine()` closures over `Geometry\Factories\LineFactory` (`from()->to()->width()->color()`); text closures receive `Typography\FontFactory` (`file()/size()/color()/align(h,v)/angle()`) — NOT `FontInterface`. `insert()` argument order changed to `insert($image, $x, $y, $position)` (position strings like `'top-left'` still work). GD built-in numeric font ids (`'1'`, v2 default) no longer exist: `TextLayer` treats numeric fonts as "no file" and falls back to v4's built-in default font.
 - **endroid/qr-code v6 value object.** `QrCode` is constructed with named arguments (`new QrCode(data: ..., size: ..., margin: ...)`) — no `QrCode::create()`/setters. `ErrorCorrectionLevel` and `RoundBlockSizeMode` are enums in the top-level `Endroid\QrCode\` namespace (no sub-namespace); output via `(new PngWriter())->write($qrCode)->getDataUri()`.
 - **`SplPriorityQueue` iteration is destructive.** `Canvas::render()` and `Canvas::graph()` each drain the queue; a Canvas instance cannot be rendered twice.
@@ -40,3 +41,17 @@ Follow TDD for behavior changes: write/extend a failing test first (red), fix `s
 - **`'auto'` width/height** are strings that set `autoWidth`/`autoHeight` flags; several layers override `getHeight()` to compute from content (e.g. `TextLayer` with `autowrap`, `QrCodeLayer`). Container layers sync child sizes in `addRow`/`addCell`/`addContentLayer` — preserve those contracts when editing.
 - **`graph()` is a public serialization surface** (layer-tree spec with `spec`/`data` keys). If you add a layer property, decide whether it belongs in `graph()` and keep all layer `graph()` overrides consistent.
 - Chinese is the working language for code comments; commit messages use conventional-commit prefixes (`feat(scope):`, `fix:`, `refactor:`) with Chinese subjects. Feature work happens on a `dev` branch merged to `main` via PR.
+
+## Agent skills
+
+### Issue tracker
+
+Issue 与 spec 发布到本仓库的 GitHub Issues（通过 `gh` CLI）。详见 `docs/agents/issue-tracker.md`。
+
+### Triage labels
+
+使用默认五个 triage 角色标签：needs-triage、needs-info、ready-for-agent、ready-for-human、wontfix。详见 `docs/agents/triage-labels.md`。
+
+### Domain docs
+
+Single-context 布局：根目录 `CONTEXT.md` + `docs/adr/`。详见 `docs/agents/domain.md`。
