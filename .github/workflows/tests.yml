@@ -22,13 +22,16 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - php: '8.3'
-            experimental: false
-          # 8.4 为前瞻性验证：依赖按 lock 安装可行，但未在本地实测过，失败不阻塞
-          - php: '8.4'
-            experimental: true
+    matrix:
+      include:
+        - php: '8.3'
+          experimental: false
+        # 8.4 已在 CI（PHPUnit step 通过）与 Docker（php:8.4-cli）双重验证，转入正式门禁
+        - php: '8.4'
+          experimental: false
+        # 8.5 为前瞻性验证：失败不阻塞，连续通过后转正式门禁
+        - php: '8.5'
+          experimental: true
     continue-on-error: ${{ matrix.experimental }}
     steps:
       - name: Checkout
